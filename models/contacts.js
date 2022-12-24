@@ -1,34 +1,63 @@
-const { Contact } = require("../schemas/contacts");
+const { Schema, model } = require("mongoose");
+const Joi = require("joi");
 
-const listContacts = async () => {
-  const allContacts = await Contact.find({});
-  return allContacts;
+const contactSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Set name for contact"],
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { versionKey: false, timestamps: true }
+);
+
+const handleErrors = (error, data, next) => {
+  const { name, code } = error;
+  console.log(name);
+  console.log(code);
 };
 
-const getById = async (contactId) => {
-  const contactById = await Contact.findById(contactId);
-  return contactById;
-};
+contactSchema.get("save", handleErrors);
 
-const removeContact = async (contactId) => {
-  const removeContactById = await Contact.findByIdAndRemove(contactId);
-  return removeContactById;
-};
+const Contact = model("contacts", contactSchema);
 
-const addContact = async (body) => {
-  const newContact = await Contact.create(body);
-  return newContact;
-};
+const schemaAdd = Joi.object({
+  name: Joi.string().min(3).max(30).required(),
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+    })
+    .required(),
+  phone: Joi.number().integer().required(),
+  favorite: Joi.bool(),
+});
 
-const updateContact = async (contactId, body) => {
-  const updateContact = await Contact.findByIdAndUpdate(contactId, body);
-  return updateContact;
-};
+const schemaUpdate = Joi.object({
+  name: Joi.string().min(3).max(30),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+  }),
+  phone: Joi.number().integer(),
+  favorite: Joi.bool(),
+}).min(1);
+
+const schemaUpdateFavorite = Joi.object({
+  favorite: Joi.bool().required(),
+});
 
 module.exports = {
-  listContacts,
-  getById,
-  removeContact,
-  addContact,
-  updateContact,
+  Contact,
+  schemaAdd,
+  schemaUpdate,
+  schemaUpdateFavorite,
 };

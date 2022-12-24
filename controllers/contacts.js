@@ -1,4 +1,4 @@
-const contacts = require("../models/contacts");
+const contacts = require("../services/contactsService");
 const { HttpError, ctrlWrapper } = require("../helpers");
 
 const getAll = async (req, res, next) => {
@@ -44,10 +44,22 @@ const deleteById = async (req, res, next) => {
   res.status(200).json({ message: "contact deleted" });
 };
 
+const updateStatusContact = async (req, res, next) => {
+  const { contactId } = req.params;
+  const updateContactById = await contacts.updateFavorite(contactId, req.body);
+
+  if (!updateContactById) {
+    throw HttpError(404, "Not found");
+  }
+
+  res.status(200).json(updateContactById);
+};
+
 module.exports = {
   getAll: ctrlWrapper(getAll),
   getById: ctrlWrapper(getById),
   add: ctrlWrapper(add),
   updateById: ctrlWrapper(updateById),
   deleteById: ctrlWrapper(deleteById),
+  updateStatusContact: ctrlWrapper(updateStatusContact),
 };
