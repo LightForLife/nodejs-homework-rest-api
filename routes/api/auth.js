@@ -4,16 +4,16 @@ const controllers = require("../../controllers/auth");
 
 const { reqisterSchema, loginSchema } = require("../../models/user");
 
-const { validateBody } = require("../../middlewares");
+const { validateBody, authenticate } = require("../../middlewares");
 
 const router = express.Router();
 
 router.post("/signup", validateBody(reqisterSchema), controllers.reqister);
 
-// router.post("/login", isValidId, controllers.getById);
+router.post("/login", validateBody(loginSchema), controllers.login);
 
-// router.post("/logout", validateBody(schemaAdd), controllers.add);
+router.get("/current", authenticate, controllers.getCurrent);
 
-// router.get("/current", isValidId, controllers.deleteById);
+router.get("/logout", authenticate, controllers.logout);
 
 module.exports = router;
