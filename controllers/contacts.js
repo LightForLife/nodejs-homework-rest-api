@@ -1,13 +1,13 @@
 const contacts = require("../services/contactsService");
 const { HttpError, ctrlWrapper } = require("../helpers");
 
-const getAll = async (req, res, next) => {
+const getAll = async (req, res) => {
   const { _id: owner } = req.user;
   const allContacts = await contacts.listContacts(owner, req.query);
   res.status(200).json(allContacts);
 };
 
-const getById = async (req, res, next) => {
+const getById = async (req, res) => {
   const { contactId } = req.params;
   const contactById = await contacts.getById(contactId);
 
@@ -18,13 +18,13 @@ const getById = async (req, res, next) => {
   res.status(200).json(contactById);
 };
 
-const add = async (req, res, next) => {
+const add = async (req, res) => {
   const { _id: owner } = req.user;
   const newContact = await contacts.addContact({ ...req.body, owner });
   res.status(201).json(newContact);
 };
 
-const updateById = async (req, res, next) => {
+const updateById = async (req, res) => {
   const { contactId } = req.params;
   const updateContactById = await contacts.updateContact(contactId, req.body);
 
