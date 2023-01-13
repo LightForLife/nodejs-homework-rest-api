@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
+const jimp = require("jimp");
 
 const { HttpError, ctrlWrapper } = require("../helpers");
 const { SECRET_KEY } = process.env;
@@ -83,8 +84,20 @@ const avatarDir = path.join(__dirname, "../", "public", "avatars");
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
   const { path: tempUpload, filename } = req.file;
+  console.log(req.file);
   const newFileName = `${_id}_${filename}`;
+
+  // =================== crop avatar with Jimp ===================
+  const avatarImg = await jimp.read(req.file.path);
+
+  await avatarImg
+    .autocrop()
+    .cover(250, 250, jimp.HORIZONTAL_ALIGN_CENTER || jimp.VERTICAL_ALIGN_MIDDLE)
+    .writeAsync(req.file.path);
+  // ===================
+
   const resultUpload = path.join(avatarDir, newFileName);
+
   await fs.rename(tempUpload, resultUpload);
 
   const avatarURL = path.join("avatars", newFileName);
