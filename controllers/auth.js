@@ -84,21 +84,20 @@ const avatarDir = path.join(__dirname, "../", "public", "avatars");
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
   const { path: tempUpload, filename } = req.file;
-  console.log(req.file);
   const newFileName = `${_id}_${filename}`;
 
   // =================== crop avatar with Jimp ===================
-  const avatarImg = await jimp.read(req.file.path);
+  const avatarImg = await jimp.read(tempUpload);
 
   await avatarImg
     .autocrop()
     .cover(250, 250, jimp.HORIZONTAL_ALIGN_CENTER || jimp.VERTICAL_ALIGN_MIDDLE)
-    .writeAsync(req.file.path);
+    .writeAsync(tempUpload);
   // ===================
 
-  const resultUpload = path.join(avatarDir, newFileName);
+  const fileUpload = path.join(avatarDir, newFileName);
 
-  await fs.rename(tempUpload, resultUpload);
+  await fs.rename(tempUpload, fileUpload);
 
   const avatarURL = path.join("avatars", newFileName);
 
