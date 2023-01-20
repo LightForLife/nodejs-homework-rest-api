@@ -4,11 +4,13 @@ const gravatar = require("gravatar");
 const fs = require("fs/promises");
 const path = require("path");
 const jimp = require("jimp");
+const { v4: uuidv4 } = require("uuid");
 
-const { HttpError, ctrlWrapper } = require("../helpers");
-const { SECRET_KEY } = process.env;
+const { HttpError, ctrlWrapper, sendEmail } = require("../helpers");
+const { SECRET_KEY, PORT } = process.env;
 
 const { User } = require("../models/user");
+const BASE_URL = `http://localhost:${PORT}`;
 
 const reqister = async (req, res) => {
   const { email, password } = req.body;
@@ -20,12 +22,25 @@ const reqister = async (req, res) => {
   const hashPassword = await bcrypt.hash(password, 10);
 
   const avatarURL = gravatar.url(email);
+  const verificationToken = uuidv4();
 
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
     avatarURL,
+    verificationToken,
   });
+
+  const link = `${BASE_URL}/api/users/verify/${verificationToken}`;
+
+  const mail = {
+    to: email, // Change to your recipient
+    from: "arturlvchnk@gmail.com", // Change to your verified sender
+    subject: "Confirm your email",
+    html: `<a href=${link} target="_blank">Click on this link to confirm registration</a>`,
+  };
+
+  await sendEmail(mail);
 
   res.status(201).json({
     email: newUser.email,
@@ -44,6 +59,10 @@ const login = async (req, res) => {
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
     throw HttpError(401, "Email or password is wrong");
+  }
+
+  if (!user.verify) {
+    throw HttpError(400, "Email not verify");
   }
 
   const payload = {
